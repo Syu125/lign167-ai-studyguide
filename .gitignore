@@ -2,3 +2,4 @@ __pycache__
 streamlit/__pycache__
 .chroma
 tmp
+streamlit/constants.py
