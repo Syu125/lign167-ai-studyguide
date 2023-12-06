@@ -8,3 +8,4 @@ pyttsx3
 assemblyai
 tiktoken
 elevenlabs
+PyMuPDF==1.23.7
