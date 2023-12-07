@@ -23,7 +23,7 @@ from elevenlabs import generate, set_api_key
 
 st.set_page_config(page_title="Interactive Content")
 
-set_api_key(os.environ.get('APIKEY', 'default_value'))
+set_api_key(os.getenv('APIKEY'))
 
 # Define passwords (in a real app, use a more secure method)
 ADMIN_PASSWORD = "admin_pass"
