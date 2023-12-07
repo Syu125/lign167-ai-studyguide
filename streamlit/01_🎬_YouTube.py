@@ -16,7 +16,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 import threading
 import constants
-import queue
+# import queue
 
 from gptube import generate_answer_youtube, generate_answer_transcript, generate_summary, video_info, is_valid_openai_key, is_valid_youtube_url, get_video_duration, calculate_api_cost, summarize_with_gpt3, extract_topics_from_summary, generate_definitions_for_topics, generate_practice_problems_for_topics
 from elevenlabs import generate, set_api_key
@@ -43,8 +43,8 @@ if 'logged_in' not in st.session_state:
 if 'pdf_generated' not in st.session_state:
     st.session_state['pdf_generated'] = False    
 
-if 'in_thread' not in st.session_state:    
-    st.session_state['in_thread'] = False
+# if 'in_thread' not in st.session_state:    
+#     st.session_state['in_thread'] = False
     
 # Check password
 if password:
@@ -181,7 +181,7 @@ def display_topics_and_sections_ordered():
 generated_curriculum = None
 pdf_topic = None
 # download_button = st.empty()
-result_queue = queue.Queue()
+# result_queue = queue.Queue()
 def show_user_ui():
     topics = load_topics()
     
@@ -191,7 +191,7 @@ def show_user_ui():
     def generate_pdf(pdf_path, selected_topic, download_button):
         progress_bar = st.progress(0)
         selected_topic = selected_topic[selected_topic.index("|") + 2:]
-        result_queue.put(selected_topic)
+        # result_queue.put(selected_topic)
         
         topic_index = chapters.index(selected_topic)
         next_topic = ""
@@ -376,13 +376,13 @@ elif st.session_state['login_status'] == "user":
 else:
     st.sidebar.write("Please log in")
     
-if not st.session_state['in_thread']:
-    st.download_button(
-        label="Download PDF",
-        data=result_queue.get(),
-        file_name=f"StudyGuide_{result_queue.get()}.pdf",
-        mime="application/pdf"
-    )
+# if not st.session_state['in_thread']:
+#     st.download_button(
+#         label="Download PDF",
+#         data=result_queue.get(),
+#         file_name=f"StudyGuide_{result_queue.get()}.pdf",
+#         mime="application/pdf"
+#     )
 
 # Hide Left Menu
 st.markdown("""<style>
