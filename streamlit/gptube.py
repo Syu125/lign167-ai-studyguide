@@ -4,6 +4,7 @@ import openai
 import requests
 import streamlit as st
 import hashlib
+import nltk
 from nltk.tokenize import sent_tokenize
 # nltk.download('punkt')
 
