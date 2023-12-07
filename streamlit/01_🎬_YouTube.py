@@ -137,7 +137,7 @@ def extract_specific_section(pdf_path, start_section, end_section=None):
         if in_section:
             extracted_text += text
     
-    st.markdown("[EXTRACTED TEXT]\n", document)
+    st.markdown("[EXTRACTED TEXT]\n", extracted_text)
     document.close()
     return extracted_text
 
