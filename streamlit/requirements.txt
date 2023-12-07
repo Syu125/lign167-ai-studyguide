@@ -10,4 +10,4 @@ tiktoken
 elevenlabs
 PyMuPDF==1.23.7
 reportlab==4.0.7
-nltk==3.8.1
+nltk
