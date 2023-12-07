@@ -23,7 +23,7 @@ from elevenlabs import generate, set_api_key
 
 st.set_page_config(page_title="Interactive Content")
 
-set_api_key(APIKEY)
+set_api_key(os.environ.get('APIKEY', 'default_value'))
 
 # Define passwords (in a real app, use a more secure method)
 ADMIN_PASSWORD = "admin_pass"
@@ -205,7 +205,7 @@ def show_user_ui():
         section_text = extract_specific_section(pdf_path, topic_key, next_topic_key)
         print(section_text)
         progress_bar.progress(20)
-        openai_api_key = APIKEY
+        openai_api_key = os.environ.get('APIKEY', 'default_value')
         summarized_section = summarize_with_gpt3(openai_api_key, section_text)
         progress_bar.progress(40)
         key_concepts = extract_topics_from_summary(summarized_section)
@@ -311,7 +311,7 @@ def show_user_ui():
         st.markdown('######') 
                 
         # OPENAI API KEY
-        openai_api_key = constants.APIKEY
+        openai_api_key = os.environ.get('APIKEY', 'default_value')
         
         # Disable YouTube URL field until OpenAI API key is valid
         if openai_api_key:
