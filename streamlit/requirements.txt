@@ -4,10 +4,10 @@ openai==0.27.1
 pytube==15.0.0
 requests==2.31.0
 chromadb==0.4.11
-pyttsx3
-assemblyai
-tiktoken
-elevenlabs
+pyttsx3==2.90
+assemblyai==0.20.0
+tiktoken==0.5.1
+elevenlabs==0.2.24
 PyMuPDF==1.23.7
 reportlab==4.0.7
-nltk
+nltk==3.8.1
