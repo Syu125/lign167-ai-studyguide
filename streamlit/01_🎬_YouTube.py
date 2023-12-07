@@ -16,6 +16,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 import threading
 import constants
+import queue
 
 from gptube import generate_answer_youtube, generate_answer_transcript, generate_summary, video_info, is_valid_openai_key, is_valid_youtube_url, get_video_duration, calculate_api_cost, summarize_with_gpt3, extract_topics_from_summary, generate_definitions_for_topics, generate_practice_problems_for_topics
 from elevenlabs import generate, set_api_key
@@ -42,8 +43,8 @@ if 'logged_in' not in st.session_state:
 if 'pdf_generated' not in st.session_state:
     st.session_state['pdf_generated'] = False    
 
-if 'pdf_buffer' not in st.session_state:
-    st.session_state['pdf_buffer'] = None
+if 'in_thread' not in st.session_state:    
+    st.session_state['in_thread'] = False
     
 # Check password
 if password:
@@ -116,11 +117,12 @@ def show_admin_ui():
 
 def extract_specific_section(pdf_path, start_section, end_section=None):
     document = fitz.open(pdf_path)
+    print("[DOCUMENT]\n", document)
     extracted_text = ""
     in_section = False
 
     for page in document:
-        text = page.get_text("text")
+        text = page.get_text()
         # Check for the start of the section
         if start_section in text and not in_section:
             start_index = text.find(start_section) + len(start_section)
@@ -134,7 +136,8 @@ def extract_specific_section(pdf_path, start_section, end_section=None):
         # Append text if we're in the correct section
         if in_section:
             extracted_text += text
-
+    
+    print("[EXTRACTED TEXT]\n", document)
     document.close()
     return extracted_text
 
@@ -173,13 +176,22 @@ def display_topics_and_sections_ordered():
                 st.write("No topics and sections added yet.")
     except FileNotFoundError:
         st.write("No topics and sections added yet.")
+        
 # User UI
+generated_curriculum = None
+pdf_topic = None
+# download_button = st.empty()
+result_queue = queue.Queue()
 def show_user_ui():
     topics = load_topics()
     
-    def generate_pdf(pdf_path, selected_topic, placeholder):
+    if 'pdf_buffer' not in st.session_state:
+        st.session_state['pdf_buffer'] = st.empty()
+    
+    def generate_pdf(pdf_path, selected_topic, download_button):
         progress_bar = st.progress(0)
         selected_topic = selected_topic[selected_topic.index("|") + 2:]
+        result_queue.put(selected_topic)
         
         topic_index = chapters.index(selected_topic)
         next_topic = ""
@@ -191,6 +203,7 @@ def show_user_ui():
             next_topic_key = next_topic.replace(" ", "\n", 1)
         progress_bar.progress(10)
         section_text = extract_specific_section(pdf_path, topic_key, next_topic_key)
+        print(section_text)
         progress_bar.progress(20)
         openai_api_key = constants.APIKEY
         summarized_section = summarize_with_gpt3(openai_api_key, section_text)
@@ -200,38 +213,25 @@ def show_user_ui():
         details = generate_definitions_for_topics(key_concepts)
         curriculum = ""
         for concept in key_concepts:
-            #curriculum += f"Topic: {concept}\n"
             curriculum += f"{details.get(concept, 'N/A')}\n"
         progress_bar.progress(80)
-        st.session_state['pdf_buffer'] = create_curriculum_pdf(curriculum, selected_topic)
-        placeholder = st.download_button(
+        generated_curriculum = create_curriculum_pdf(curriculum, selected_topic)
+        download_button = st.download_button(
             label="Download PDF",
-            data=st.session_state['pdf_buffer'],
+            data=generated_curriculum,
             file_name=f"StudyGuide_{selected_topic}.pdf",
             mime="application/pdf"
         )
-        # st.session_state['pdf_generated'] = True
         progress_bar.progress(100)
-        
-    def start_pdf_generation(pdf_path, selected_topic, download_pdf_placeholder):
-        thread = threading.Thread(target=generate_pdf, args=(pdf_path, selected_topic, download_pdf_placeholder))
-        thread.start()
-        return thread
-
     
     # Display the dropdown and handle topic selection
     if topics:
         st.markdown("## Create Study Guide for Specific Topic")
         selected_topic = st.selectbox("Topic:", topics)
         generate_button = st.button("Generate Study Guide")
-        download_pdf_placeholder = st.empty()
         if selected_topic != "None" and generate_button:
             pdf_path = 'Goldberg.pdf'
-            start_pdf_generation(pdf_path, selected_topic, download_pdf_placeholder)
-
-        # Use 'selected_topic' in your application logic
-        # For example, tailoring GPT chat responses based on the selected topic
-        # ...
+            generate_pdf(pdf_path, selected_topic, generate_button)
     else:
         st.write("No topics available right now.")
     
@@ -311,9 +311,7 @@ def show_user_ui():
         st.markdown('######') 
                 
         # OPENAI API KEY
-        #st.markdown('#### 🔑 Step 1 : Enter your OpenAI API key') 
         openai_api_key = constants.APIKEY
-        #st.text_input("[Get Yours From the OPENAI Website](https://platform.openai.com/account/api-keys) : ", placeholder="sk-***********************************", type="password")
         
         # Disable YouTube URL field until OpenAI API key is valid
         if openai_api_key:
@@ -338,8 +336,6 @@ def show_user_ui():
                 with st.spinner("Generating answer..."):
                     # Call the function with the user inputs
                     context = []
-                    # for speaker, message in st.session_state['chat_history']:
-                    #     context.append({"role": speaker, "content": message})
                     prompt = context
                     prompt.append({"role":"user", "content": question})
                     if youtube_url:
@@ -355,9 +351,6 @@ def show_user_ui():
                         answer = generate_answer_transcript(openai_api_key, transcript, prompt)
                         
                     update_chat_history(key_input, question, answer)
-                    
-                # st.markdown(f"#### 🤖 {question}")
-                # st.success(answer)
                 
             for speaker, message in st.session_state['chat_history'][key_input][:-1]:
                 if speaker == "user":
@@ -382,19 +375,18 @@ elif st.session_state['login_status'] == "user":
     show_user_ui()
 else:
     st.sidebar.write("Please log in")
-
-# # Conditional display of the download button
-# if st.session_state['pdf_generated'] and st.session_state['pdf_buffer'] is not None:
-#     st.download_button(
-#         label="Download PDF",
-#         data=st.session_state['pdf_buffer'],
-#         file_name="curriculum_guide.pdf",
-#         mime="application/pdf"
-#     )
+    
+if not st.session_state['in_thread']:
+    st.download_button(
+        label="Download PDF",
+        data=result_queue.get(),
+        file_name=f"StudyGuide_{result_queue.get()}.pdf",
+        mime="application/pdf"
+    )
 
 # Hide Left Menu
 st.markdown("""<style>
-#MainMenu {visibility: hidden;}
+MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 </style>""", unsafe_allow_html=True)
 
