@@ -117,7 +117,7 @@ def show_admin_ui():
 
 def extract_specific_section(pdf_path, start_section, end_section=None):
     document = fitz.open(pdf_path)
-    print("[DOCUMENT]\n", document)
+    st.markdown("[DOCUMENT]\n", document)
     extracted_text = ""
     in_section = False
 
@@ -137,7 +137,7 @@ def extract_specific_section(pdf_path, start_section, end_section=None):
         if in_section:
             extracted_text += text
     
-    print("[EXTRACTED TEXT]\n", document)
+    st.markdown("[EXTRACTED TEXT]\n", document)
     document.close()
     return extracted_text
 
