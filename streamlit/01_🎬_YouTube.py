@@ -18,7 +18,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 # from constants import APIKEY
 # import queue
 
-from gptube import generate_answer_youtube, generate_answer_transcript, generate_summary, video_info, is_valid_openai_key, is_valid_youtube_url, get_video_duration, calculate_api_cost, summarize_with_gpt3, extract_topics_from_summary, generate_definitions_for_topics, generate_practice_problems_for_topics
+from gptube import generate_answer_youtube, generate_answer_transcript, generate_summary, video_info, is_valid_openai_key, is_valid_youtube_url, get_video_duration, calculate_api_cost, summarize_with_gpt3, extract_topics_from_summary, generate_definitions_for_topics, generate_practice_problems_for_topics, refresh_prompt
 from elevenlabs import generate, set_api_key
 
 st.set_page_config(page_title="Interactive Content")
@@ -244,16 +244,12 @@ def show_user_ui():
         st.session_state['chat_history'][key].append(("user", user_message))
         st.session_state['chat_history'][key].append(("assistant", response))
 
-    if st.session_state['chat_history']:
-        selected_key = st.sidebar.selectbox(
-            'Select Chat History',
-            list(st.session_state['chat_history'].keys())
-        )
-        with st.expander(f"Chat History: {selected_key}"):
-            for speaker, message, in st.session_state['chat_history'][selected_key]:
-                st.markdown(speaker)
-                st.success(message)
-            
+    def update_chat_selection():
+        if st.session_state['chat_history']:
+            selected_key = st.selectbox(
+                'Select Chat History',
+                list(st.session_state['chat_history'].keys())
+            )
 
     def display_typing_effect_markdown(message, delay=0.1):
         placeholder = st.empty()
@@ -310,7 +306,8 @@ def show_user_ui():
                 
         # OPENAI API KEY
         openai_api_key = st.secrets["APIKEY"]
-        
+        previous_file = None
+
         # Disable YouTube URL field until OpenAI API key is valid
         if openai_api_key:
             st.markdown('#### Step 1 : Enter your YouTube Video or Lecture Transcript')
@@ -331,9 +328,18 @@ def show_user_ui():
                 st.warning("Please enter a question.")
             else:
                 # os.environ["OPENAI_API_KEY"] = openai_api_key
+                if uploaded_file.name not in st.session_state['chat_history']:
+                    st.session_state['chat_history'][uploaded_file.name] = []
+                if (previous_file != uploaded_file):
+                    refresh_prompt()
                 with st.spinner("Generating answer..."):
                     # Call the function with the user inputs
                     context = []
+                    for speaker, message in st.session_state['chat_history'][uploaded_file.name]:
+                        if speaker == "user":
+                            context.append({"role":"user", "content": message})
+                        elif speaker == "assistant":
+                            context.append({"role":"assistant", "content": message})
                     prompt = context
                     prompt.append({"role":"user", "content": question})
                     if youtube_url:
@@ -349,18 +355,17 @@ def show_user_ui():
                         answer = generate_answer_transcript(openai_api_key, transcript, prompt)
                         
                     update_chat_history(key_input, question, answer)
+                    update_chat_selection()
                 
-            for speaker, message in st.session_state['chat_history'][key_input][:-1]:
-                if speaker == "user":
-                    st.markdown(f"#### {message}")
-                elif speaker == "assistant":
-                    st.success(message)
-            last_speaker = st.session_state['chat_history'][key_input][-1][0]
+            second_last_message = st.session_state['chat_history'][key_input][-2][1]
+            st.markdown(f"### {second_last_message}")
             last_message = st.session_state['chat_history'][key_input][-1][1]
-            if last_speaker == "user":
-                display_typing_effect_markdown(last_message)
-            elif last_speaker == "assistant":
-                display_typing_effect_success(last_message)
+            display_typing_effect_success(last_message)
+            for i in range(len(st.session_state['chat_history'][key_input])-3, -1, -2):
+                message = st.session_state['chat_history'][key_input][i][1]
+                prev_message = st.session_state['chat_history'][key_input][i-1][1]
+                st.markdown(f"### {prev_message}")
+                st.success(message)
     youtube_app()
     
 # Display UI based on login status

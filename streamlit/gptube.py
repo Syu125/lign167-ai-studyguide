@@ -195,6 +195,13 @@ def generate_practice_problems_for_topics(topics):
         problems_with_solutions[topic] = latest_response
     return problems_with_solutions
 
+# refresh gpt prompt
+def refresh_prompt():
+    global prompt
+    prompt = []
+    global question_count
+    question_count = 0
+
 # Generate Youtube Answer
 def generate_answer_youtube(api_key: str, url: str, question: str) -> str:
 
@@ -236,7 +243,7 @@ def generate_answer_youtube(api_key: str, url: str, question: str) -> str:
                 if "message" in choice and "content" in choice["message"]:
                     prompt.append({"role": "assistant", "content": choice["message"]["content"]})
                 
-        prompt.append({"role":"user", "content": question[0]["content"]})
+        prompt.append({"role":"user", "content": question[-1]["content"]})
         print(prompt)
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",  # The name of the OpenAI chatbot model to use
@@ -297,7 +304,7 @@ def generate_answer_transcript(api_key: str, transcript: str, question: str) -> 
                 if "message" in choice and "content" in choice["message"]:
                     prompt.append({"role": "assistant", "content": choice["message"]["content"]})
                 
-        prompt.append({"role":"user", "content": question[0]["content"]})
+        prompt.append({"role":"user", "content": question[-1]["content"]})
         print(prompt)
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",  # The name of the OpenAI chatbot model to use
