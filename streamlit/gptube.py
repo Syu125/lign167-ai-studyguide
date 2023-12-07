@@ -5,6 +5,7 @@ import requests
 import streamlit as st
 import hashlib
 import nltk
+nltk.download('punkt')
 from nltk.tokenize import sent_tokenize
 # nltk.download('punkt')
 
