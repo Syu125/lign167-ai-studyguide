@@ -63,7 +63,7 @@ def parse_chapters_from_file(file_path):
         chapters = file.read().splitlines()
     return chapters
 
-sections_filepath = 'sections.txt'
+sections_filepath = './streamlit/sections.txt'
 chapters = parse_chapters_from_file(sections_filepath)
 
 def load_topics():
@@ -230,7 +230,7 @@ def show_user_ui():
         selected_topic = st.selectbox("Topic:", topics)
         generate_button = st.button("Generate Study Guide")
         if selected_topic != "None" and generate_button:
-            pdf_path = 'Goldberg.pdf'
+            pdf_path = './streamlit/Goldberg.pdf'
             generate_pdf(pdf_path, selected_topic, generate_button)
     else:
         st.write("No topics available right now.")
