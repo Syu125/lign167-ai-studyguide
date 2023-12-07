@@ -14,8 +14,8 @@ import io
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
-import threading
-import constants
+# import threading
+from constants import APIKEY
 # import queue
 
 from gptube import generate_answer_youtube, generate_answer_transcript, generate_summary, video_info, is_valid_openai_key, is_valid_youtube_url, get_video_duration, calculate_api_cost, summarize_with_gpt3, extract_topics_from_summary, generate_definitions_for_topics, generate_practice_problems_for_topics
@@ -23,7 +23,7 @@ from elevenlabs import generate, set_api_key
 
 st.set_page_config(page_title="Interactive Content")
 
-set_api_key(constants.APIKEY)
+set_api_key(APIKEY)
 
 # Define passwords (in a real app, use a more secure method)
 ADMIN_PASSWORD = "admin_pass"
@@ -205,7 +205,7 @@ def show_user_ui():
         section_text = extract_specific_section(pdf_path, topic_key, next_topic_key)
         print(section_text)
         progress_bar.progress(20)
-        openai_api_key = constants.APIKEY
+        openai_api_key = APIKEY
         summarized_section = summarize_with_gpt3(openai_api_key, section_text)
         progress_bar.progress(40)
         key_concepts = extract_topics_from_summary(summarized_section)
