@@ -75,6 +75,25 @@ def load_topics():
     except FileNotFoundError:
         return []
 
+def create_chat_history_doc(key_input):
+    buffer = io.BytesIO()
+    title = f"Chat History | {key_input}"
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=20, leftMargin=20, topMargin=20, bottomMargin=20, title=title)
+    styles = getSampleStyleSheet()
+    custom_style = styles['Normal']
+    custom_style.fontName = "Times-Roman"
+    Story = [Spacer(1, 2)]
+    if key_input in st.session_state['chat_history']: 
+        for speaker, message, in st.session_state['chat_history'][key_input]:
+            p1 = Paragraph(speaker, styles["Normal"])
+            p2 = Paragraph(message, styles["Normal"])
+            Story.append(p1)
+            Story.append(p2)
+            Story.append(Spacer(1, 12))
+    doc.build(Story)
+    buffer.seek(0)
+    return buffer 
+
 def create_curriculum_pdf(curriculum_content, topic):
     buffer = io.BytesIO()
     title = f"Study Guide | {topic}"
@@ -178,13 +197,8 @@ def display_topics_and_sections_ordered():
 # User UI
 generated_curriculum = None
 pdf_topic = None
-# download_button = st.empty()
-# result_queue = queue.Queue()
+previous_file = None
 def show_user_ui():
-    topics = load_topics()
-    
-    if 'pdf_buffer' not in st.session_state:
-        st.session_state['pdf_buffer'] = st.empty()
     
     def generate_pdf(pdf_path, selected_topic, download_button):
         progress_bar = st.progress(0)
@@ -222,21 +236,6 @@ def show_user_ui():
         )
         progress_bar.progress(100)
     
-    # Display the dropdown and handle topic selection
-    if topics:
-        st.markdown("## Create Study Guide for Specific Topic")
-        selected_topic = st.selectbox("Topic:", topics)
-        generate_button = st.button("Generate Study Guide")
-        if selected_topic != "None" and generate_button:
-            pdf_path = './streamlit/Goldberg.pdf'
-            generate_pdf(pdf_path, selected_topic, generate_button)
-    else:
-        st.write("No topics available right now.")
-    
-    # Initialize session state for chat history
-    if 'chat_history' not in st.session_state:
-        st.session_state['chat_history'] = dict()
-    
     # Function to update chat history
     def update_chat_history(key, user_message, response):
         if key not in st.session_state['chat_history']:
@@ -258,7 +257,7 @@ def show_user_ui():
             display_text += char
             placeholder.markdown(display_text)
             time.sleep(delay)
-
+            
     def display_typing_effect_success(message, delay=0.01):
         placeholder = st.empty()
         display_text = ""
@@ -266,7 +265,44 @@ def show_user_ui():
             display_text += char
             placeholder.success(display_text)
             time.sleep(delay)
-            
+    
+    def show_specific_chat(key_input):
+        global previous_file
+        if previous_file != key_input:
+            if key_input in st.session_state['chat_history']:
+                second_last_message = st.session_state['chat_history'][key_input][-2][1]
+                st.markdown(f"### {second_last_message}")
+                last_message = st.session_state['chat_history'][key_input][-1][1]
+                display_typing_effect_success(last_message)
+                for i in range(len(st.session_state['chat_history'][key_input])-3, -1, -2):
+                    message = st.session_state['chat_history'][key_input][i][1]
+                    prev_message = st.session_state['chat_history'][key_input][i-1][1]
+                    st.markdown(f"### {prev_message}")
+                    st.success(message)   
+    
+    topics = load_topics()
+    
+    if 'pdf_buffer' not in st.session_state:
+        st.session_state['pdf_buffer'] = st.empty()                
+    
+    # Initialize session state for chat history
+    if 'chat_history' not in st.session_state:
+        st.session_state['chat_history'] = dict()
+        
+    if 'select_chat' not in st.session_state:
+        st.session_state['select_chat'] = st.empty() 
+    
+    if st.session_state['select_chat']:
+        selected_chat = st.session_state['select_chat']  
+        if selected_chat in st.session_state['chat_history']: 
+            chat_pdf = create_chat_history_doc(selected_chat)
+            download_button = st.download_button(
+                label="Download Chat History",
+                data=chat_pdf,
+                file_name=f"ChatHistory_{selected_chat}.pdf",
+                mime="application/pdf"
+            )
+
     # App UI
     def youtube_app():
 
@@ -300,13 +336,24 @@ def show_user_ui():
 
             st.markdown("<p style='color: white;'>💻 Resource Credit [GitHub](https://github.com/Hamagistral/GPTube)</p>", unsafe_allow_html=True)
 
+        # Display the dropdown and handle topic selection
+        st.markdown('#####')
+        if topics:
+            st.markdown("## Create Study Guide for Specific Topic")
+            selected_topic = st.selectbox("Topic:", topics)
+            generate_button = st.button("Generate Study Guide")
+            if selected_topic != "None" and generate_button:
+                pdf_path = './streamlit/Goldberg.pdf'
+                generate_pdf(pdf_path, selected_topic, generate_button)
+        else:
+            st.write("No topics available right now.")
+            
         st.markdown('## or Chat with Your Lecture') 
 
         st.markdown('######') 
                 
         # OPENAI API KEY
         openai_api_key = st.secrets["APIKEY"]
-        previous_file = None
 
         # Disable YouTube URL field until OpenAI API key is valid
         if openai_api_key:
@@ -330,6 +377,7 @@ def show_user_ui():
                 # os.environ["OPENAI_API_KEY"] = openai_api_key
                 if uploaded_file.name not in st.session_state['chat_history']:
                     st.session_state['chat_history'][uploaded_file.name] = []
+                global previous_file
                 if (previous_file != uploaded_file):
                     refresh_prompt()
                 with st.spinner("Generating answer..."):
@@ -353,21 +401,26 @@ def show_user_ui():
                         stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
                         transcript = stringio.read()
                         answer = generate_answer_transcript(openai_api_key, transcript, prompt)
-                        
+                    
+                    previous_file = uploaded_file
                     update_chat_history(key_input, question, answer)
-                    update_chat_selection()
                 
-            second_last_message = st.session_state['chat_history'][key_input][-2][1]
-            st.markdown(f"### {second_last_message}")
-            last_message = st.session_state['chat_history'][key_input][-1][1]
-            display_typing_effect_success(last_message)
-            for i in range(len(st.session_state['chat_history'][key_input])-3, -1, -2):
-                message = st.session_state['chat_history'][key_input][i][1]
-                prev_message = st.session_state['chat_history'][key_input][i-1][1]
-                st.markdown(f"### {prev_message}")
-                st.success(message)
+            show_specific_chat(key_input)
+            
     youtube_app()
     
+if 'chat_history' in st.session_state:
+    if not st.session_state['chat_history']:
+        print("No chat history")
+        st.session_state['select_chat'] = st.markdown("#### No Chat History")
+    else:
+        options = {}
+        options['Select a chat history...'] = ''
+        options.update(st.session_state['chat_history'])
+        st.session_state['select_chat'] = st.selectbox(
+            'Select Chat History',
+            list(options)
+        )
 # Display UI based on login status
 if not st.session_state['logged_in']:
     st.title("Welcome to your LIGN 167 Assistant!")
@@ -378,14 +431,6 @@ elif st.session_state['login_status'] == "user":
     show_user_ui()
 else:
     st.sidebar.write("Please log in")
-    
-# if not st.session_state['in_thread']:
-#     st.download_button(
-#         label="Download PDF",
-#         data=result_queue.get(),
-#         file_name=f"StudyGuide_{result_queue.get()}.pdf",
-#         mime="application/pdf"
-#     )
 
 # Hide Left Menu
 st.markdown("""<style>
