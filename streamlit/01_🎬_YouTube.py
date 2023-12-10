@@ -29,6 +29,14 @@ set_api_key(st.secrets["APIKEY"])
 ADMIN_PASSWORD = "admin_pass"
 USER_PASSWORD = "user_pass"
 
+pdf_storage_path = './streamlit/pdf_storage'
+
+if 'generated_pdfs' not in st.session_state:
+    st.session_state['generated_pdfs'] = {}
+    
+if not os.path.exists(pdf_storage_path):
+    os.makedirs(pdf_storage_path)
+    
 # Sidebar for login
 password = st.sidebar.text_input("Enter your password", type="password")
 
@@ -42,9 +50,6 @@ if 'logged_in' not in st.session_state:
     
 if 'pdf_generated' not in st.session_state:
     st.session_state['pdf_generated'] = False    
-
-# if 'in_thread' not in st.session_state:    
-#     st.session_state['in_thread'] = False
     
 # Check password
 if password:
@@ -111,28 +116,40 @@ def create_curriculum_pdf(curriculum_content, topic):
     buffer.seek(0)
     return buffer
 
-# Admin UI
-def show_admin_ui():
-    st.title("Admin Dashboard")
-
-    # Form for adding new topic, textbook section, and date
-    st.subheader("Add New Topic, Corresponding Textbook Section, and Date")
-    with st.form(key='topic_textbook_form'):
-        new_topic = st.selectbox("Select a chapter", chapters, index=7)
-        topic_date = st.date_input("Date", date.today())
-        submit_button = st.form_submit_button(label='Add')
-
-        if submit_button and new_topic:
-            add_topic_section_date(new_topic, topic_date)
-
-    # Button to clear the topic list
-    if st.button("Clear Topic List"):
-        clear_topic_list()
-        st.success("Topic list cleared!")
-
-    # Display existing topics and textbook sections ordered by date
-    st.subheader("Current Topics and Textbook Sections")
-    display_topics_and_sections_ordered()
+def generate_pdf(pdf_path, selected_topic, index):
+    global pdf_storage_path
+    pdf_filename = selected_topic + ".pdf"
+    pdf_file_path = os.path.join(pdf_storage_path, pdf_filename)
+    progress_bar = st.progress(0)
+    # result_queue.put(selected_topic)
+    
+    topic_index = chapters.index(selected_topic)
+    next_topic = ""
+    if (topic_index + 1) < len(chapters):
+        next_topic = chapters[topic_index + 1]
+    topic_key = selected_topic.replace(" ", "\n", 1)
+    next_topic_key = ""
+    if " " in next_topic:
+        next_topic_key = next_topic.replace(" ", "\n", 1)
+    progress_bar.progress(10)
+    section_text = extract_specific_section(pdf_path, topic_key, next_topic_key)
+    progress_bar.progress(20)
+    openai_api_key = st.secrets["APIKEY"]
+    summarized_section = summarize_with_gpt3(openai_api_key, section_text)
+    progress_bar.progress(40)
+    key_concepts = extract_topics_from_summary(summarized_section)
+    progress_bar.progress(60)
+    details = generate_definitions_for_topics(key_concepts)
+    curriculum = ""
+    for concept in key_concepts:
+        curriculum += f"{details.get(concept, 'N/A')}\n"
+    progress_bar.progress(80)
+    generated_curriculum = create_curriculum_pdf(curriculum, selected_topic)
+    generated_curriculum.seek(0)
+    with open(pdf_file_path, 'wb') as pdf_file:
+        pdf_file.write(generated_curriculum.read())
+    progress_bar.progress(100)
+    return pdf_file_path
 
 def extract_specific_section(pdf_path, start_section, end_section=None):
     document = fitz.open(pdf_path)
@@ -171,70 +188,74 @@ def add_topic_section_date(topic, topic_date):
 def display_topics_and_sections_ordered():
     try:
         with open("topics_and_sections.txt", "r") as file:
-            # Parse the file into a DataFrame
             data = [line.strip().split('|') for line in file.readlines()]
             if data:
                 df = pd.DataFrame(data, columns=['Date', 'Topic'])
-                # Convert 'Date' to datetime for proper sorting
                 df['Date'] = pd.to_datetime(df['Date'])
-                
-                # Sort the DataFrame by the 'Date' column
                 df = df.sort_values(by='Date')
-
-                # Reset index to start from 1 after sorting
                 df = df.reset_index(drop=True)
                 df.index = df.index + 1
-
-                # Format the date for display
                 df['Date'] = df['Date'].dt.strftime('%Y-%m-%d')
 
-                st.table(df)  # Display as a table
+                for index, row in df.iterrows():
+                    col1, col2, col3 = st.columns([2, 5, 3])
+
+                    with col1:
+                        st.write(row['Date'])
+                    
+                    with col2:
+                        st.write(row['Topic'])
+
+                    with col3:
+                        topic = row['Topic']
+                        if topic not in st.session_state['generated_pdfs'] or not st.session_state['generated_pdfs'][topic]:
+                            file_path = generate_pdf('./streamlit/Goldberg.pdf', topic, index)
+                            st.session_state['generated_pdfs'][topic] = True
+                        else:
+                            file_path = os.path.join(pdf_storage_path, topic + ".pdf")
+
+                        with open(file_path, "rb") as pdf_file:
+                            st.download_button(
+                                label="Download PDF",
+                                data=pdf_file,
+                                file_name=f"{topic}.pdf",
+                                mime="application/octet-stream",
+                                key=f"pdf_download_{index}"
+                            )
             else:
                 st.write("No topics and sections added yet.")
+
     except FileNotFoundError:
         st.write("No topics and sections added yet.")
         
+# Admin UI
+def show_admin_ui():
+    st.title("Admin Dashboard")
+
+    # Form for adding new topic, textbook section, and date
+    st.subheader("Add New Topic, Corresponding Textbook Section, and Date")
+    with st.form(key='topic_textbook_form'):
+        new_topic = st.selectbox("Select a chapter", chapters, index=7)
+        topic_date = st.date_input("Date", date.today())
+        submit_button = st.form_submit_button(label='Add')
+
+        if submit_button and new_topic:
+            add_topic_section_date(new_topic, topic_date)
+
+    # Button to clear the topic list
+    if st.button("Clear Topic List"):
+        clear_topic_list()
+        st.success("Topic list cleared!")
+
+    # Display existing topics and textbook sections ordered by date
+    st.subheader("Current Topics and Textbook Sections")
+    display_topics_and_sections_ordered()
+
 # User UI
 generated_curriculum = None
 pdf_topic = None
 previous_file = None
 def show_user_ui():
-    
-    def generate_pdf(pdf_path, selected_topic, download_button):
-        progress_bar = st.progress(0)
-        selected_topic = selected_topic[selected_topic.index("|") + 2:]
-        # result_queue.put(selected_topic)
-        
-        topic_index = chapters.index(selected_topic)
-        next_topic = ""
-        if (topic_index + 1) < len(chapters):
-            next_topic = chapters[topic_index + 1]
-        topic_key = selected_topic.replace(" ", "\n", 1)
-        next_topic_key = ""
-        if " " in next_topic:
-            next_topic_key = next_topic.replace(" ", "\n", 1)
-        progress_bar.progress(10)
-        section_text = extract_specific_section(pdf_path, topic_key, next_topic_key)
-        print(section_text)
-        progress_bar.progress(20)
-        openai_api_key = st.secrets["APIKEY"]
-        summarized_section = summarize_with_gpt3(openai_api_key, section_text)
-        progress_bar.progress(40)
-        key_concepts = extract_topics_from_summary(summarized_section)
-        progress_bar.progress(60)
-        details = generate_definitions_for_topics(key_concepts)
-        curriculum = ""
-        for concept in key_concepts:
-            curriculum += f"{details.get(concept, 'N/A')}\n"
-        progress_bar.progress(80)
-        generated_curriculum = create_curriculum_pdf(curriculum, selected_topic)
-        download_button = st.download_button(
-            label="Download PDF",
-            data=generated_curriculum,
-            file_name=f"StudyGuide_{selected_topic}.pdf",
-            mime="application/pdf"
-        )
-        progress_bar.progress(100)
     
     # Function to update chat history
     def update_chat_history(key, user_message, response):
@@ -243,21 +264,6 @@ def show_user_ui():
         st.session_state['chat_history'][key].append(("user", user_message))
         st.session_state['chat_history'][key].append(("assistant", response))
 
-    def update_chat_selection():
-        if st.session_state['chat_history']:
-            selected_key = st.selectbox(
-                'Select Chat History',
-                list(st.session_state['chat_history'].keys())
-            )
-
-    def display_typing_effect_markdown(message, delay=0.1):
-        placeholder = st.empty()
-        display_text = ""
-        for char in message:
-            display_text += char
-            placeholder.markdown(display_text)
-            time.sleep(delay)
-            
     def display_typing_effect_success(message, delay=0.01):
         placeholder = st.empty()
         display_text = ""
@@ -335,18 +341,6 @@ def show_user_ui():
             st.markdown("####")
 
             st.markdown("<p style='color: white;'>💻 Resource Credit [GitHub](https://github.com/Hamagistral/GPTube)</p>", unsafe_allow_html=True)
-
-        # Display the dropdown and handle topic selection
-        st.markdown('#####')
-        if topics:
-            st.markdown("## Create Study Guide for Specific Topic")
-            selected_topic = st.selectbox("Topic:", topics)
-            generate_button = st.button("Generate Study Guide")
-            if selected_topic != "None" and generate_button:
-                pdf_path = './streamlit/Goldberg.pdf'
-                generate_pdf(pdf_path, selected_topic, generate_button)
-        else:
-            st.write("No topics available right now.")
             
         st.markdown('## or Chat with Your Lecture') 
 
