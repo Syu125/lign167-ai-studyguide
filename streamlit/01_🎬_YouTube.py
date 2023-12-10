@@ -235,7 +235,7 @@ def show_admin_ui():
     # Form for adding new topic, textbook section, and date
     st.subheader("Add New Topic, Corresponding Textbook Section, and Date")
     with st.form(key='topic_textbook_form'):
-        new_topic = st.selectbox("Select a chapter", chapters, index=7)
+        new_topic = st.selectbox("Select a chapter", chapters, index=8)
         topic_date = st.date_input("Date", date.today())
         submit_button = st.form_submit_button(label='Add')
 
@@ -342,6 +342,21 @@ def show_user_ui():
 
             st.markdown("<p style='color: white;'>💻 Resource Credit [GitHub](https://github.com/Hamagistral/GPTube)</p>", unsafe_allow_html=True)
             
+        st.markdown('#####')
+        if topics:
+            st.markdown("## Create Study Guide for Specific Topic")
+            selected_topic = st.selectbox("Topic:", topics).split("| ")[1]
+            file_path = os.path.join(pdf_storage_path, selected_topic + ".pdf")
+            with open(file_path, "rb") as pdf_file:
+                st.download_button(
+                    label="Download PDF",
+                    data=pdf_file,
+                    file_name=f"{selected_topic}.pdf",
+                    mime="application/octet-stream"
+                )
+        else:
+            st.write("No topics available right now.")
+        
         st.markdown('## or Chat with Your Lecture') 
 
         st.markdown('######') 
