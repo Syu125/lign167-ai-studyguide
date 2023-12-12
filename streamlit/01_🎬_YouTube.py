@@ -51,6 +51,13 @@ def get_pdf_file(bucket_name, file_path):
 
     return blob.public_url
 
+def download_blob(bucket_name, source_blob_name, destination_file_name):
+    """Downloads a blob from the bucket."""
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob("transcripts/" + source_blob_name)
+
+    blob.download_to_filename(destination_file_name)
+    
 bucket_name = 'lign167-pdf-storage'
 
 # Define passwords (in a real app, use a more secure method)
@@ -278,10 +285,11 @@ def display_topics_and_sections_ordered():
                         
                         with st.expander(f"Upload Transcript"):
                             uploaded_file = st.file_uploader(f"Upload here:", type="txt", key=f"transcript_{index}")
+                            transcript_path = os.path.join(transcript_storage_path, row['Topic'] + ".txt")
                             if uploaded_file is not None:
-                                transcript_path = os.path.join(transcript_storage_path, row['Topic'] + ".txt")
                                 with open(transcript_path, "wb") as f:
                                     f.write(uploaded_file.getbuffer())
+                                upload_to_gcs(bucket_name, transcript_path, f"transcripts/{row['Topic']}")
                                 st.session_state['transcripts'][uploaded_file.name] = True
                                 st.success("Transcript uploaded!")
                             
@@ -427,6 +435,7 @@ def show_user_ui():
         if openai_api_key:
 
             transcript_filepath = os.path.join(transcript_storage_path, selected_topic + ".txt")
+            download_blob(bucket_name, selected_topic, transcript_filepath)
             uploaded_file = None
             if os.path.exists(transcript_filepath):
                 uploaded_file = open(transcript_filepath, 'r')

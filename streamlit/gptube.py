@@ -279,7 +279,6 @@ def generate_answer_transcript(api_key: str, transcript: str, question: str) -> 
     transcript_filepath = os.path.join("tmp/", f"{transcript_id}.txt")
     with open(transcript_filepath, 'w') as file:
         file.write(transcript)
-    print("FILE: ", os.path.exists(transcript_filepath))
     
     # Check if the transcript file already exist
     if os.path.exists(transcript_filepath):
