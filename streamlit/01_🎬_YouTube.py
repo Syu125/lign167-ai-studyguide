@@ -14,6 +14,7 @@ import io
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
+import base64
 # import threading
 # from constants import APIKEY
 # import queue
@@ -30,9 +31,13 @@ ADMIN_PASSWORD = "admin_pass"
 USER_PASSWORD = "user_pass"
 
 pdf_storage_path = './streamlit/pdf_storage'
+transcript_storage_path = './streamlit/transcript_storage'
 
 if 'generated_pdfs' not in st.session_state:
     st.session_state['generated_pdfs'] = {}
+    
+if 'transcripts' not in st.session_state:
+    st.session_state['transcripts'] = {}
     
 if not os.path.exists(pdf_storage_path):
     os.makedirs(pdf_storage_path)
@@ -184,8 +189,15 @@ def add_topic_section_date(topic, topic_date):
     with open("topics_and_sections.txt", "a") as file:
         file.write(f"{topic_date.isoformat()}|{topic}\n")
 
+def show_pdf(file_path):
+    with open(file_path, "rb") as f:
+        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf"></iframe>'
+    st.markdown(pdf_display, unsafe_allow_html=True)
+    
 # Function to display existing topics and textbook sections
 def display_topics_and_sections_ordered():
+
     try:
         with open("topics_and_sections.txt", "r") as file:
             data = [line.strip().split('|') for line in file.readlines()]
@@ -198,7 +210,7 @@ def display_topics_and_sections_ordered():
                 df['Date'] = df['Date'].dt.strftime('%Y-%m-%d')
 
                 for index, row in df.iterrows():
-                    col1, col2, col3 = st.columns([2, 5, 3])
+                    col1, col2, col3 = st.columns([3, 7, 5])
 
                     with col1:
                         st.write(row['Date'])
@@ -206,22 +218,38 @@ def display_topics_and_sections_ordered():
                     with col2:
                         st.write(row['Topic'])
 
-                    with col3:
+                    with col1:
+                        file_path = ""
                         topic = row['Topic']
                         if topic not in st.session_state['generated_pdfs'] or not st.session_state['generated_pdfs'][topic]:
                             file_path = generate_pdf('./streamlit/Goldberg.pdf', topic, index)
                             st.session_state['generated_pdfs'][topic] = True
                         else:
                             file_path = os.path.join(pdf_storage_path, topic + ".pdf")
+                            
+                        with st.expander(f"View"):
+                            show_pdf(file_path)
+                            
+                    with col3:    
 
-                        with open(file_path, "rb") as pdf_file:
-                            st.download_button(
-                                label="Download PDF",
-                                data=pdf_file,
-                                file_name=f"{topic}.pdf",
-                                mime="application/octet-stream",
-                                key=f"pdf_download_{index}"
-                            )
+                        with st.expander(f"Update Study Guide PDF"):
+                            uploaded_file = st.file_uploader(f"Upload here:", type="pdf", key=f"file_uploader_{index}")
+                            if uploaded_file is not None:
+                                with open(file_path, "wb") as f:
+                                    f.write(uploaded_file.getbuffer())
+                                st.session_state['generated_pdfs'][topic] = True
+                                st.success("PDF updated successfully!")
+                                st.button(label='Refresh', key=f"refresh_{index}")
+                        
+                        with st.expander(f"Upload Transcript"):
+                            uploaded_file = st.file_uploader(f"Upload here:", type="txt", key=f"transcript_{index}")
+                            if uploaded_file is not None:
+                                transcript_path = os.path.join(transcript_storage_path, row['Topic'] + ".txt")
+                                with open(transcript_path, "wb") as f:
+                                    f.write(uploaded_file.getbuffer())
+                                st.session_state['transcripts'][uploaded_file.name] = True
+                                st.success("Transcript uploaded!")
+                            
             else:
                 st.write("No topics and sections added yet.")
 
@@ -233,7 +261,7 @@ def show_admin_ui():
     st.title("Admin Dashboard")
 
     # Form for adding new topic, textbook section, and date
-    st.subheader("Add New Topic, Corresponding Textbook Section, and Date")
+    st.subheader("Add New Topic: Corresponding Textbook Section, and Date")
     with st.form(key='topic_textbook_form'):
         new_topic = st.selectbox("Select a chapter", chapters, index=8)
         topic_date = st.date_input("Date", date.today())
@@ -366,17 +394,18 @@ def show_user_ui():
 
         # Disable YouTube URL field until OpenAI API key is valid
         if openai_api_key:
-            st.markdown('#### Step 1 : Enter your YouTube Video or Lecture Transcript')
 
-            youtube_url = st.text_input("URL :", placeholder="https://www.youtube.com/watch?v=************")
-            uploaded_file = st.file_uploader("Text File:", type=['txt'])
+            transcript_filepath = os.path.join(transcript_storage_path, selected_topic + ".txt")
+            uploaded_file = None
+            if os.path.exists(transcript_filepath):
+                uploaded_file = open(transcript_filepath, 'r')
 
-        if openai_api_key and (youtube_url or uploaded_file):
+        if openai_api_key and uploaded_file:
             st.markdown('#### Step 2 : Enter your Question')
             question = st.text_input("What can I help you with?", placeholder="Enter your question here")
         else:
-            st.markdown('#### Step 2 : Enter your Question')
-            st.write("Please enter a YouTube URL or upload a file first!")
+            st.markdown('#### Enter your Question')
+            st.write("There is no transcript for this topic, so please select another topic!")
         
         # Add a button to run the function
         if st.button("Send"):
@@ -399,16 +428,9 @@ def show_user_ui():
                             context.append({"role":"assistant", "content": message})
                     prompt = context
                     prompt.append({"role":"user", "content": question})
-                    if youtube_url:
-                        if is_valid_youtube_url(youtube_url):
-                            key_input = youtube_url
-                            answer = generate_answer_youtube(openai_api_key, youtube_url, prompt)
-                        else:
-                            st.warning("Youtube URL is invalid.")
-                    elif uploaded_file is not None:
+                    if uploaded_file is not None:
                         key_input = uploaded_file.name
-                        stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
-                        transcript = stringio.read()
+                        transcript = uploaded_file.read()
                         answer = generate_answer_transcript(openai_api_key, transcript, prompt)
                     
                     previous_file = uploaded_file
