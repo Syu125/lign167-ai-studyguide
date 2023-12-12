@@ -260,7 +260,7 @@ def display_topics_and_sections_ordered():
                             # file_path = os.path.join(pdf_storage_path, topic + ".pdf")
                             
                         with st.expander(f"View"):
-                            print(public_url)
+                            st.markdown(public_url)
                             show_pdf(public_url)
                             
                     with col3:    
