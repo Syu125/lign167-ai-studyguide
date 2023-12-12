@@ -285,6 +285,7 @@ def display_topics_and_sections_ordered():
                         
                         with st.expander(f"Upload Transcript"):
                             uploaded_file = st.file_uploader(f"Upload here:", type="txt", key=f"transcript_{index}")
+                            st.markdown(uploaded_file)
                             transcript_path = os.path.join(transcript_storage_path, row['Topic'] + ".txt")
                             if uploaded_file is not None:
                                 with open(transcript_path, "wb") as f:
