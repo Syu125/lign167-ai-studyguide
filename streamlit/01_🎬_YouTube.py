@@ -293,7 +293,7 @@ def display_topics_and_sections_ordered():
                                 st.markdown("SECOND")
                                 try:                            
                                     st.markdown("HERE")
-                                    st.markdown(f"File exists: {transcript_path.exists()}")
+                                    st.markdown(f"File exists: {transcript_path}")
                                     with open(transcript_path, "w") as f:
                                         st.markdown("HERE")
                                         f.write(file_content)
