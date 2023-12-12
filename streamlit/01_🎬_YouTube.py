@@ -285,9 +285,10 @@ def display_topics_and_sections_ordered():
                         
                         with st.expander(f"Upload Transcript"):
                             uploaded_file = st.file_uploader(f"Upload here:", type="txt", key=f"transcript_{index}")
-                            st.markdown(uploaded_file)
                             transcript_path = os.path.join(transcript_storage_path, row['Topic'] + ".txt")
+                            st.markdown(uploaded_file is not None)
                             if uploaded_file is not None:
+                                st.markdown("HERE")
                                 with open(transcript_path, "wb") as f:
                                     f.write(uploaded_file.getbuffer())
                                 upload_to_gcs(bucket_name, transcript_path, f"transcripts/{row['Topic']}")
