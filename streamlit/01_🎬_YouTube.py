@@ -291,6 +291,7 @@ def display_topics_and_sections_ordered():
                                 file_content = uploaded_file.getvalue().decode("utf-8")
                                 st.markdown("SECOND")
                                 try:                            
+                                    st.markdown("HERE")
                                     st.markdown(f"File exists: {transcript_path.exists()}")
                                     with open(transcript_path, "w") as f:
                                         st.markdown("HERE")
