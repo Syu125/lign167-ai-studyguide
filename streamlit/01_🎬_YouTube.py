@@ -288,9 +288,12 @@ def display_topics_and_sections_ordered():
                             transcript_path = os.path.join(transcript_storage_path, row['Topic'] + ".txt")
                             if uploaded_file is not None:
                                 file_content = uploaded_file.getvalue().decode("utf-8")
-                                with open(transcript_path, "w") as f:
-                                    st.markdown("HERE")
-                                    f.write(file_content)
+                                try:
+                                    with open(transcript_path, "w") as f:
+                                        st.markdown("HERE")
+                                        f.write(file_content)
+                                except Exception as e:
+                                    st.markdown("error: " + e)
                                 upload_to_gcs(bucket_name, transcript_path, f"transcripts/{row['Topic']}")
                                 st.session_state['transcripts'][uploaded_file.name] = True
                                 st.success("Transcript uploaded!")
