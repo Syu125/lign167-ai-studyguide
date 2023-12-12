@@ -287,7 +287,7 @@ def display_topics_and_sections_ordered():
                             uploaded_file = st.file_uploader(f"Upload here:", type="txt", key=f"transcript_{index}")
                             transcript_path = os.path.join(transcript_storage_path, row['Topic'] + ".txt")
                             if uploaded_file is not None:
-                                with open(transcript_path, "r") as f:
+                                with open(transcript_path, "a") as f:
                                     f.write(uploaded_file.getbuffer())
                                 upload_to_gcs(bucket_name, transcript_path, f"transcripts/{row['Topic']}")
                                 st.session_state['transcripts'][uploaded_file.name] = True
