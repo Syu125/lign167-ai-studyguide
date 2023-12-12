@@ -29,7 +29,7 @@ st.set_page_config(page_title="Interactive Content")
 set_api_key(st.secrets["APIKEY"])
 
 # Authenticate to GCS
-credentials = service_account.Credentials.from_service_account_file('elemental-icon-407905-833146d629c5.json')
+credentials = service_account.Credentials.from_service_account_file('./streamlit/elemental-icon-407905-833146d629c5.json')
 client = storage.Client(credentials=credentials)
 
 # Function to upload file to GCS
