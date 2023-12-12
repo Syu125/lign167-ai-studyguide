@@ -287,7 +287,9 @@ def display_topics_and_sections_ordered():
                             uploaded_file = st.file_uploader(f"Upload here:", type="txt", key=f"transcript_{index}")
                             transcript_path = os.path.join(transcript_storage_path, row['Topic'] + ".txt")
                             if uploaded_file is not None:
+                                st.markdown("FIRST")
                                 file_content = uploaded_file.getvalue().decode("utf-8")
+                                st.markdown("SECOND")
                                 try:                            
                                     st.markdown(f"File exists: {transcript_path.exists()}")
                                     with open(transcript_path, "w") as f:
