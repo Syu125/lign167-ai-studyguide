@@ -34,7 +34,6 @@ client = storage.Client(credentials=credentials)
 
 # Function to upload file to GCS
 def upload_to_gcs(bucket_name, source_file_name, destination_blob_name):
-    st.markdown("HERE")
     bucket = client.bucket(bucket_name)
     blob = bucket.blob(destination_blob_name)
     blob.upload_from_filename(source_file_name)
@@ -290,6 +289,7 @@ def display_topics_and_sections_ordered():
                             if uploaded_file is not None:
                                 file_content = uploaded_file.getvalue().decode("utf-8")
                                 with open(transcript_path, "a") as f:
+                                    st.markdown("HERE")
                                     f.write(file_content)
                                 upload_to_gcs(bucket_name, transcript_path, f"transcripts/{row['Topic']}")
                                 st.session_state['transcripts'][uploaded_file.name] = True
