@@ -289,7 +289,7 @@ def display_topics_and_sections_ordered():
                             if uploaded_file is not None:
                                 file_content = uploaded_file.getvalue().decode("utf-8")
                                 try:                            
-                                    st.markdown(f"{transcript_path.exists()}")
+                                    st.markdown(f"File exists: {transcript_path.exists()}")
                                     with open(transcript_path, "w") as f:
                                         st.markdown("HERE")
                                         f.write(file_content)
