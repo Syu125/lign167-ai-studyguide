@@ -15,6 +15,8 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 import base64
+from google.cloud import storage
+from google.oauth2 import service_account
 # import threading
 # from constants import APIKEY
 # import queue
@@ -25,6 +27,31 @@ from elevenlabs import generate, set_api_key
 st.set_page_config(page_title="Interactive Content")
 
 set_api_key(st.secrets["APIKEY"])
+
+# Authenticate to GCS
+credentials = service_account.Credentials.from_service_account_file('elemental-icon-407905-833146d629c5.json')
+client = storage.Client(credentials=credentials)
+
+# Function to upload file to GCS
+def upload_to_gcs(bucket_name, source_file_name, destination_blob_name):
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
+    blob.upload_from_filename(source_file_name)
+
+    # Return a public URL to the file
+    return blob.public_url
+
+def get_pdf_file(bucket_name, file_path):
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(file_path)
+
+    if not blob.exists():
+        print("File does not exist in bucket")
+        return None
+
+    return blob.public_url
+
+bucket_name = 'lign167-pdf-storage'
 
 # Define passwords (in a real app, use a more secure method)
 ADMIN_PASSWORD = "admin_pass"
@@ -190,11 +217,12 @@ def add_topic_section_date(topic, topic_date):
         file.write(f"{topic_date.isoformat()}|{topic}\n")
 
 def show_pdf(file_path):
-    with open(file_path, "rb") as f:
-        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf"></iframe>'
-    st.markdown(pdf_display, unsafe_allow_html=True)
-    
+    # with open(file_path, "rb") as f:
+    #     base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+    # pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf"></iframe>'
+    # st.markdown(pdf_display, unsafe_allow_html=True)
+    st.markdown(f'<iframe src="{file_path}" width="700" height="1000"></iframe>', unsafe_allow_html=True)
+
 # Function to display existing topics and textbook sections
 def display_topics_and_sections_ordered():
 
@@ -220,12 +248,16 @@ def display_topics_and_sections_ordered():
 
                     with col1:
                         file_path = ""
+                        public_url = ""
                         topic = row['Topic']
                         if topic not in st.session_state['generated_pdfs'] or not st.session_state['generated_pdfs'][topic]:
                             file_path = generate_pdf('./streamlit/Goldberg.pdf', topic, index)
+                            public_url = upload_to_gcs(bucket_name, file_path, f"pdfs/{topic}")
                             st.session_state['generated_pdfs'][topic] = True
                         else:
-                            file_path = os.path.join(pdf_storage_path, topic + ".pdf")
+                            file_path = f"pdfs/{topic}"
+                            public_url = get_pdf_file(bucket_name, file_path) + f"?{int(time.time())}"
+                            # file_path = os.path.join(pdf_storage_path, topic + ".pdf")
                             
                         with st.expander(f"View"):
                             show_pdf(file_path)
@@ -234,9 +266,12 @@ def display_topics_and_sections_ordered():
 
                         with st.expander(f"Update Study Guide PDF"):
                             uploaded_file = st.file_uploader(f"Upload here:", type="pdf", key=f"file_uploader_{index}")
+                            file_path = os.path.join(pdf_storage_path, row['Topic'] + '.pdf')
                             if uploaded_file is not None:
                                 with open(file_path, "wb") as f:
                                     f.write(uploaded_file.getbuffer())
+                                upload_to_gcs(bucket_name, file_path, f"pdfs/{row['Topic']}")
+                                
                                 st.session_state['generated_pdfs'][topic] = True
                                 st.success("PDF updated successfully!")
                                 st.button(label='Refresh', key=f"refresh_{index}")
@@ -375,13 +410,9 @@ def show_user_ui():
             st.markdown("## Create Study Guide for Specific Topic")
             selected_topic = st.selectbox("Topic:", topics).split("| ")[1]
             file_path = os.path.join(pdf_storage_path, selected_topic + ".pdf")
-            with open(file_path, "rb") as pdf_file:
-                st.download_button(
-                    label="Download PDF",
-                    data=pdf_file,
-                    file_name=f"{selected_topic}.pdf",
-                    mime="application/octet-stream"
-                )
+            pdf_url = get_pdf_file(bucket_name, file_path) + f"?{int(time.time())}"
+            with st.expander(f"View"):    
+                show_pdf(pdf_url)    
         else:
             st.write("No topics available right now.")
         
@@ -401,7 +432,7 @@ def show_user_ui():
                 uploaded_file = open(transcript_filepath, 'r')
 
         if openai_api_key and uploaded_file:
-            st.markdown('#### Step 2 : Enter your Question')
+            st.markdown('#### Enter your Question')
             question = st.text_input("What can I help you with?", placeholder="Enter your question here")
         else:
             st.markdown('#### Enter your Question')
