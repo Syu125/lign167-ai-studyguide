@@ -293,7 +293,7 @@ def display_topics_and_sections_ordered():
                                         st.markdown("HERE")
                                         f.write(file_content)
                                 except Exception as e:
-                                    st.markdown("error: " + e)
+                                    st.markdown(f"error:{e}")
                                 upload_to_gcs(bucket_name, transcript_path, f"transcripts/{row['Topic']}")
                                 st.session_state['transcripts'][uploaded_file.name] = True
                                 st.success("Transcript uploaded!")
