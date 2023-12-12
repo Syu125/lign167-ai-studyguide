@@ -255,6 +255,7 @@ def display_topics_and_sections_ordered():
 
                     with col1:
                         file_path = ""
+                        transcript_path = ""
                         public_url = ""
                         topic = row['Topic']
                         if topic not in st.session_state['generated_pdfs'] or not st.session_state['generated_pdfs'][topic]:
