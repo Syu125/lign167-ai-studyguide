@@ -409,7 +409,7 @@ def show_user_ui():
         if topics:
             st.markdown("## Create Study Guide for Specific Topic")
             selected_topic = st.selectbox("Topic:", topics).split("| ")[1]
-            file_path = os.path.join(pdf_storage_path, selected_topic + ".pdf")
+            file_path = f"pdfs/{selected_topic}"
             pdf_url = get_pdf_file(bucket_name, file_path) + f"?{int(time.time())}"
             with st.expander(f"View"):    
                 show_pdf(pdf_url)    
