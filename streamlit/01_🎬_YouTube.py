@@ -337,6 +337,39 @@ def display_topics_and_sections_ordered():
         
 # Admin UI
 def show_admin_ui():
+    with st.sidebar:
+        st.markdown("<h2 style='color: black;'>Study Enhancer Tool: Your Companion for In-Depth Learning</h4>", unsafe_allow_html=True)
+
+        # st.markdown("<h2 style='color: white;'>Features for Professors/Admins</h4>", unsafe_allow_html=True)
+        summary = """
+
+        <p style='color: white;'>Welcome to the administrative interface of the Study Enhancer Tool, designed to empower educators in creating a dynamic and engaging learning environment. This platform provides you with robust tools to customize and enhance the educational content for your students.</p>
+
+        <h3 style='color: white;'>Key Administrative Features:</h3>
+        <ol style='color: white;'>
+            <li><strong>Topic Management</strong>: Easily add new topics to the curriculum. For each topic, you can include the date it will be taught, ensuring structured and timely delivery of content.
+                <ul>
+                    <li><strong>Seamless Integration</strong>: Topics added are immediately accessible to students, aligning with your teaching schedule.</li>
+                </ul>
+            </li>
+            <li><strong>Automated Study Guide Generation</strong>: Upon adding a new topic, an initial study guide is automatically generated using GPT. This guide serves as a preliminary resource for students.
+                <ul>
+                    <li><strong>Customization</strong>: You have the option to enhance these guides by uploading your own PDFs, offering a personalized touch to the study materials.</li>
+                </ul>
+            </li>
+            <li><strong>Transcript Upload for Lectures</strong>: Accompany your lectures with transcripts. Upload transcripts corresponding to each topic's lecture, providing students with another layer of learning material to work with.</li>
+            <li><strong>Content Accessibility</strong>: View both the study guides and transcripts for each topic you manage. This feature allows you to ensure that all provided materials meet your educational standards and are in line with your teaching methodology.</li>
+        </ol>
+        <p style='color: white;'>As a professor or admin, your role is pivotal in shaping the educational journey of your students. Our <strong>Study Enhancer Tool</strong> is here to assist you in this mission, offering a streamlined platform for content management and student engagement. Elevate your teaching experience and foster a more effective learning environment with our tool.</p>
+        """
+
+        st.markdown(summary, unsafe_allow_html=True)
+
+
+    st.markdown("####")
+
+    st.markdown("<p style='color: white;'>💻 Resource Credit [GitHub](https://github.com/Hamagistral/GPTube)</p>", unsafe_allow_html=True)
+    
     st.title("Admin Dashboard")
 
     # Form for adding new topic, textbook section, and date
