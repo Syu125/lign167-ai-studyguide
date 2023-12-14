@@ -313,7 +313,7 @@ def display_topics_and_sections_ordered():
                                 
                                 st.session_state['generated_pdfs'][topic] = True
                                 st.success("PDF updated successfully!")
-                                st.button(label='Refresh', key=f"refresh_{index}")
+                                st.button(label='Refresh', key=f"refresh1_{index}")
                         
                         with st.expander(f"Upload Transcript"):
                             uploaded_file = st.file_uploader(f"Upload here:", type="txt", key=f"transcript_{index}")
@@ -327,7 +327,7 @@ def display_topics_and_sections_ordered():
                                 upload_to_gcs(bucket_name, transcript_path, f"transcripts/{row['Topic']}")
                                 st.session_state['transcripts'][row['Topic']] = True
                                 st.success("Transcript uploaded!")
-                                st.button(label='Refresh', key=f"refresh_{index}")
+                                st.button(label='Refresh', key=f"refresh2_{index}")
                             
             else:
                 st.write("No topics and sections added yet.")
