@@ -365,10 +365,9 @@ def show_admin_ui():
 
         st.markdown(summary, unsafe_allow_html=True)
 
+        st.markdown("####")
 
-    st.markdown("####")
-
-    st.markdown("<p style='color: white;'>💻 Resource Credit [GitHub](https://github.com/Hamagistral/GPTube)</p>", unsafe_allow_html=True)
+        st.markdown("<p style='color: white;'>💻 Resource Credit [GitHub](https://github.com/Hamagistral/GPTube)</p>", unsafe_allow_html=True)
     
     st.title("Admin Dashboard")
 
@@ -482,6 +481,18 @@ def show_user_ui():
 
             st.markdown("<p style='color: white;'>💻 Resource Credit [GitHub](https://github.com/Hamagistral/GPTube)</p>", unsafe_allow_html=True)
             
+        if 'chat_history' in st.session_state:
+            if not st.session_state['chat_history']:
+                print("No chat history")
+                st.session_state['select_chat'] = st.markdown("#### No Chat History")
+            else:
+                options = {}
+                options['Select a chat history...'] = ''
+                options.update(st.session_state['chat_history'])
+                st.session_state['select_chat'] = st.selectbox(
+                    'Select Chat History',
+                    list(options)
+                )
         st.markdown('#####')
         if topics:
             st.markdown("## Create Study Guide for Specific Topic")
@@ -549,18 +560,6 @@ def show_user_ui():
             
     youtube_app()
     
-if 'chat_history' in st.session_state:
-    if not st.session_state['chat_history']:
-        print("No chat history")
-        st.session_state['select_chat'] = st.markdown("#### No Chat History")
-    else:
-        options = {}
-        options['Select a chat history...'] = ''
-        options.update(st.session_state['chat_history'])
-        st.session_state['select_chat'] = st.selectbox(
-            'Select Chat History',
-            list(options)
-        )
 # Display UI based on login status
 if not st.session_state['logged_in']:
     st.title("Welcome to your LIGN 167 Assistant!")
