@@ -290,8 +290,8 @@ def display_topics_and_sections_ordered():
                             # file_path = os.path.join(pdf_storage_path, topic + ".pdf")
                         with st.expander(f"View Study Guide"):
                             show_pdf(public_url)
-                        if topic in st.session_state['transcripts'] and st.session_state['transcripts'][topic]:
-                            public_transcript_url = get_transcript_file(bucket_name, f"transcripts/{topic}")
+                        public_transcript_url = get_transcript_file(bucket_name, f"transcripts/{topic}")
+                        if topic in st.session_state['transcripts'] and st.session_state['transcripts'][topic] and public_transcript_url:
                             with st.expander(f"View Transcript"):
                                 show_transcript(public_transcript_url)
                             
