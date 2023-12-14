@@ -296,7 +296,13 @@ def display_topics_and_sections_ordered():
                                 show_transcript(public_transcript_url)
                             
                     with col3:    
-
+                        st.markdown("""
+                            <style>
+                            ..st-emotion-cache-ocrt9y {
+                                background-color: white;
+                            }
+                            </style>
+                            """, unsafe_allow_html=True)
                         with st.expander(f"Update Study Guide PDF"):
                             uploaded_file = st.file_uploader(f"Upload here:", type="pdf", key=f"file_uploader_{index}")
                             file_path = os.path.join(pdf_storage_path, row['Topic'] + '.pdf')
