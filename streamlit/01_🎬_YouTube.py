@@ -272,6 +272,14 @@ def display_topics_and_sections_ordered():
                         public_url = ""
                         public_transcript_url = ""
                         topic = row['Topic']
+                        
+                        st.markdown("""
+                            <style>
+                            .css-1y0tads {
+                                background-color: #ffffff;
+                            }
+                            </style>
+                            """, unsafe_allow_html=True)
                         if topic not in st.session_state['generated_pdfs'] or not st.session_state['generated_pdfs'][topic]:
                             file_path = generate_pdf('./streamlit/Goldberg.pdf', topic, index)
                             public_url = upload_to_gcs(bucket_name, file_path, f"pdfs/{topic}")
