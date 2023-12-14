@@ -51,6 +51,16 @@ def get_pdf_file(bucket_name, file_path):
 
     return blob.public_url
 
+def get_transcript_file(bucket_name, file_path):
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(file_path)
+
+    if not blob.exists():
+        print("File does not exist in bucket")
+        return None
+
+    return blob.public_url
+
 def download_blob(bucket_name, source_blob_name, destination_file_name):
     """Downloads a blob from the bucket."""
     bucket = client.bucket(bucket_name)
@@ -230,6 +240,9 @@ def show_pdf(file_path):
     # st.markdown(pdf_display, unsafe_allow_html=True)
     st.markdown(f'<iframe src="{file_path}" width="700" height="1000"></iframe>', unsafe_allow_html=True)
 
+def show_transcript(file_path):
+    st.markdown(f'<iframe src="{file_path}" width="700" height="1000"></iframe>', unsafe_allow_html=True)
+
 # Function to display existing topics and textbook sections
 def display_topics_and_sections_ordered():
 
@@ -257,6 +270,7 @@ def display_topics_and_sections_ordered():
                         file_path = ""
                         transcript_path = ""
                         public_url = ""
+                        public_transcript_url = ""
                         topic = row['Topic']
                         if topic not in st.session_state['generated_pdfs'] or not st.session_state['generated_pdfs'][topic]:
                             file_path = generate_pdf('./streamlit/Goldberg.pdf', topic, index)
@@ -266,9 +280,11 @@ def display_topics_and_sections_ordered():
                             file_path = f"pdfs/{topic}"
                             public_url = get_pdf_file(bucket_name, file_path) + f"?{int(time.time())}"
                             # file_path = os.path.join(pdf_storage_path, topic + ".pdf")
-                            
                         with st.expander(f"View"):
                             show_pdf(public_url)
+                        if topic in st.session_state['transcripts'] and st.session_state['transcripts'][topic]:
+                            public_transcript_url = get_transcript_file(bucket_name, f"transcripts/{topic}")
+                            show_transcript(public_transcript_url)
                             
                     with col3:    
 
