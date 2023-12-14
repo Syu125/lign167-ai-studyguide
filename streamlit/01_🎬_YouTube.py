@@ -311,7 +311,7 @@ def display_topics_and_sections_ordered():
                                 with open(transcript_path, "w") as f:
                                     f.write(file_content)
                                 upload_to_gcs(bucket_name, transcript_path, f"transcripts/{row['Topic']}")
-                                st.session_state['transcripts'][topic] = True
+                                st.session_state['transcripts'][row['Topic']] = True
                                 st.success("Transcript uploaded!")
                             
             else:
