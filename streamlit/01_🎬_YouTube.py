@@ -422,27 +422,27 @@ def show_user_ui():
         with st.sidebar:
             st.markdown("<h2 style='color: black;'>Study Enhancer Tool: Your Companion for In-Depth Learning</h4>", unsafe_allow_html=True)
 
-            # st.markdown("<h2 style='color: white;'>How It Works</h4>", unsafe_allow_html=True)
+            # st.markdown("<h2 style='color: white;'>How Our Updated Tool Works</h4>", unsafe_allow_html=True)
             summary = """
 
-            <p style='color: white;'>Welcome to the Study Enhancer Tool, an innovative solution designed to assist in your educational journey. Whether you're diving into a complex YouTube tutorial or navigating through an intricate lecture, our tool is here to streamline your learning experience.</p>
+            <p style='color: white;'>Welcome to the updated Study Enhancer Tool, designed to provide an even more intuitive and interactive educational experience. With new features and enhanced accessibility, our tool is here to revolutionize how you engage with your study materials.</p>
 
-            <h3 style='color: white;'>How It Works:</h3>
+            <h3 style='color: white;'>Key Features:</h3>
             <ol style='color: white;'>
-                <li><strong>Input Your Learning Material</strong>: Start by providing the source of your study material. You have two convenient options:
+                <li><strong>Study Guide Access</strong>: Choose a topic from the dropdown menu to access study guides. These guides are meticulously prepared, uploaded, and edited by your professors to ensure you have the best learning resources at your fingertips.
                     <ul>
-                        <li><strong>YouTube Video</strong>: Insert the URL of a YouTube video related to your study topic.</li>
-                        <li><strong>Lecture Transcript</strong>: Upload a transcript text file from a lecture you're reviewing.</li>
+                        <li><strong>Professor-Generated Guides</strong>: Each guide is tailored to specific topics, offering in-depth insights and resources.</li>
+                        <li><strong>Direct Access</strong>: Simply select a topic from the dropdown to view the associated study guide.</li>
                     </ul>
                 </li>
-                <li><strong>Content Summarization</strong>: Our tool efficiently processes your input, distilling the essential information. It creates a concise summary of the video or lecture, making it easier for you to grasp the core concepts without the fluff.</li>
-                <li><strong>Interactive Q&A</strong>: Got questions? Just ask! The tool is equipped to answer specific queries you have about the material, offering detailed explanations to enhance your understanding.</li>
-                <li><strong>Problems and Solutions</strong>: If you need to test your knowledge or tackle practice problems, our tool has got you covered. It provides relevant problems and solutions, aiding in reinforcing your learning.</li>
+                <li><strong>Interactive Chat with Lecture Transcripts</strong>: Engage in a dynamic chat using the corresponding lecture transcript for your chosen topic. This feature allows you to have an interactive learning session, asking questions and exploring concepts in depth.</li>
+                <li><strong>Chat History Tracking</strong>: Keep track of your learning journey with a convenient chat history dropdown. This feature maintains a record of your different chat interactions, making it easy to revisit previous conversations and topics.</li>
             </ol>
-            <p style='color: white;'>Whether you're preparing for an exam, researching a topic, or simply exploring new subjects, the <strong>Study Enhancer Tool</strong> is your go-to resource for an enriched learning experience. Dive in and transform the way you learn!</p>
+            <p style='color: white;'>Whether you're revising for exams, deepening your understanding of a subject, or exploring new academic territories, our enhanced <strong>Study Enhancer Tool</strong> is here to transform your educational experience. Embark on this journey with us and discover a new way of learning!</p>
             """
 
             st.markdown(summary, unsafe_allow_html=True)
+
 
             
             st.markdown("####")
