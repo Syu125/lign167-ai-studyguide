@@ -238,10 +238,10 @@ def show_pdf(file_path):
     #     base64_pdf = base64.b64encode(f.read()).decode('utf-8')
     # pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf"></iframe>'
     # st.markdown(pdf_display, unsafe_allow_html=True)
-    st.markdown(f'<iframe src="{file_path}" width="700" height="1000"></iframe>', unsafe_allow_html=True)
+    st.markdown(f'<iframe class="filedisplay" src="{file_path}" width="700" height="1000"></iframe>', unsafe_allow_html=True)
 
 def show_transcript(file_path):
-    st.markdown(f'<iframe src="{file_path}" width="700" height="1000"></iframe>', unsafe_allow_html=True)
+    st.markdown(f'<iframe class="filedisplay" src="{file_path}" width="700" height="1000"></iframe>', unsafe_allow_html=True)
 
 # Function to display existing topics and textbook sections
 def display_topics_and_sections_ordered():
@@ -275,8 +275,8 @@ def display_topics_and_sections_ordered():
                         
                         st.markdown("""
                             <style>
-                            .iframe {
-                                background-color: #ffffff;
+                            .filedisplay {
+                                background-color: white;
                             }
                             </style>
                             """, unsafe_allow_html=True)
@@ -321,6 +321,7 @@ def display_topics_and_sections_ordered():
                                 upload_to_gcs(bucket_name, transcript_path, f"transcripts/{row['Topic']}")
                                 st.session_state['transcripts'][row['Topic']] = True
                                 st.success("Transcript uploaded!")
+                                st.button(label='Refresh', key=f"refresh_{index}")
                             
             else:
                 st.write("No topics and sections added yet.")
