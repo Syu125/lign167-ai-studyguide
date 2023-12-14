@@ -298,7 +298,7 @@ def display_topics_and_sections_ordered():
                     with col3:    
                         st.markdown("""
                             <style>
-                            .st-emotion-cache-9.eqpbllx5 {
+                            .st-emotion-cache-0.eqpbllx5 {
                                 background-color: white;
                             }
                             </style>
