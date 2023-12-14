@@ -280,11 +280,12 @@ def display_topics_and_sections_ordered():
                             file_path = f"pdfs/{topic}"
                             public_url = get_pdf_file(bucket_name, file_path) + f"?{int(time.time())}"
                             # file_path = os.path.join(pdf_storage_path, topic + ".pdf")
-                        with st.expander(f"View"):
+                        with st.expander(f"View Study Guide"):
                             show_pdf(public_url)
                         if topic in st.session_state['transcripts'] and st.session_state['transcripts'][topic]:
                             public_transcript_url = get_transcript_file(bucket_name, f"transcripts/{topic}")
-                            show_transcript(public_transcript_url)
+                            with st.expander(f"View Transcript"):
+                                show_transcript(public_transcript_url)
                             
                     with col3:    
 
