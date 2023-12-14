@@ -275,7 +275,7 @@ def display_topics_and_sections_ordered():
                         
                         st.markdown("""
                             <style>
-                            .css-1y0tads {
+                            .iframe {
                                 background-color: #ffffff;
                             }
                             </style>
