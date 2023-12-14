@@ -294,6 +294,8 @@ def display_topics_and_sections_ordered():
                                 try:                            
                                     st.markdown("HERE")
                                     st.markdown(f"File exists: {transcript_path}")
+                                    if not os.path.exists(transcript_storage_path):
+                                        os.makedirs(transcript_storage_path)
                                     with open(transcript_path, "w") as f:
                                         st.markdown("HERE")
                                         f.write(file_content)
