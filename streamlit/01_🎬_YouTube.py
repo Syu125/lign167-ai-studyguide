@@ -451,6 +451,7 @@ def show_user_ui():
     # App UI
     def youtube_app():
         selected_topic = None
+        uploaded_file = None
         with st.sidebar:
             st.markdown("<h2 style='color: black;'>Study Enhancer Tool: Your Companion for In-Depth Learning</h4>", unsafe_allow_html=True)
 
