@@ -18,7 +18,7 @@ import base64
 from google.cloud import storage
 from google.oauth2 import service_account
 
-from gptube import generate_answer_transcript, summarize_with_gpt3, extract_topics_from_summary, generate_definitions_for_topics, refresh_prompt
+from gpt import generate_answer_transcript, summarize_with_gpt3, extract_topics_from_summary, generate_definitions_for_topics, refresh_prompt
 from elevenlabs import set_api_key
 
 st.set_page_config(page_title="Interactive Content")
@@ -282,7 +282,7 @@ def display_topics_and_sections_ordered():
                         with st.expander(f"View Study Guide"):
                             show_pdf(public_url)
                         public_transcript_url = get_transcript_file(bucket_name, f"transcripts/{topic}")
-                        if (topic in st.session_state['transcripts'] and st.session_state['transcripts'][topic]) or public_transcript_url:
+                        if public_transcript_url:
                             with st.expander(f"View Transcript"):
                                 show_transcript(public_transcript_url)
                             
