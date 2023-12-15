@@ -281,7 +281,7 @@ def display_topics_and_sections_ordered():
                             public_url = get_pdf_file(bucket_name, file_path) + f"?{int(time.time())}"
                         with st.expander(f"View Study Guide"):
                             show_pdf(public_url)
-                        public_transcript_url = get_transcript_file(bucket_name, f"transcripts/{topic}")
+                        public_transcript_url = get_transcript_file(bucket_name, f"transcripts/{topic}") + f"?{int(time.time())}"
                         with st.expander(f"View Transcript"):
                             show_transcript(public_transcript_url)
                             
