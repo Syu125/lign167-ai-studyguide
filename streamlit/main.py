@@ -17,12 +17,9 @@ from reportlab.lib.styles import getSampleStyleSheet
 import base64
 from google.cloud import storage
 from google.oauth2 import service_account
-# import threading
-# from constants import APIKEY
-# import queue
 
-from gptube import generate_answer_youtube, generate_answer_transcript, generate_summary, video_info, is_valid_openai_key, is_valid_youtube_url, get_video_duration, calculate_api_cost, summarize_with_gpt3, extract_topics_from_summary, generate_definitions_for_topics, generate_practice_problems_for_topics, refresh_prompt
-from elevenlabs import generate, set_api_key
+from gptube import generate_answer_transcript, summarize_with_gpt3, extract_topics_from_summary, generate_definitions_for_topics, refresh_prompt
+from elevenlabs import set_api_key
 
 st.set_page_config(page_title="Interactive Content")
 
@@ -170,7 +167,6 @@ def generate_pdf(pdf_path, selected_topic, index):
     pdf_filename = selected_topic + ".pdf"
     pdf_file_path = os.path.join(pdf_storage_path, pdf_filename)
     progress_bar = st.progress(0)
-    # result_queue.put(selected_topic)
     
     topic_index = chapters.index(selected_topic)
     next_topic = ""
@@ -234,10 +230,6 @@ def add_topic_section_date(topic, topic_date):
         file.write(f"{topic_date.isoformat()}|{topic}\n")
 
 def show_pdf(file_path):
-    # with open(file_path, "rb") as f:
-    #     base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-    # pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf"></iframe>'
-    # st.markdown(pdf_display, unsafe_allow_html=True)
     st.markdown(f'<iframe class="filedisplay" src="{file_path}" width="700" height="1000"></iframe>', unsafe_allow_html=True)
 
 def show_transcript(file_path):
@@ -287,7 +279,6 @@ def display_topics_and_sections_ordered():
                         else:
                             file_path = f"pdfs/{topic}"
                             public_url = get_pdf_file(bucket_name, file_path) + f"?{int(time.time())}"
-                            # file_path = os.path.join(pdf_storage_path, topic + ".pdf")
                         with st.expander(f"View Study Guide"):
                             show_pdf(public_url)
                         public_transcript_url = get_transcript_file(bucket_name, f"transcripts/{topic}")
@@ -340,7 +331,6 @@ def show_admin_ui():
     with st.sidebar:
         st.markdown("<h2 style='color: black;'>Study Enhancer Tool: Your Companion for In-Depth Learning</h4>", unsafe_allow_html=True)
 
-        # st.markdown("<h2 style='color: white;'>Features for Professors/Admins</h4>", unsafe_allow_html=True)
         summary = """
 
         <p style='color: white;'>Welcome to the administrative interface of the Study Enhancer Tool, designed to empower educators in creating a dynamic and engaging learning environment. This platform provides you with robust tools to customize and enhance the educational content for your students.</p>
@@ -455,7 +445,6 @@ def show_user_ui():
         with st.sidebar:
             st.markdown("<h2 style='color: black;'>Study Enhancer Tool: Your Companion for In-Depth Learning</h4>", unsafe_allow_html=True)
 
-            # st.markdown("<h2 style='color: white;'>How Our Updated Tool Works</h4>", unsafe_allow_html=True)
             summary = """
 
             <p style='color: white;'>Welcome to the updated Study Enhancer Tool, designed to provide an even more intuitive and interactive educational experience. With new features and enhanced accessibility, our tool is here to revolutionize how you engage with your study materials.</p>
@@ -512,7 +501,6 @@ def show_user_ui():
         # OPENAI API KEY
         openai_api_key = st.secrets["APIKEY"]
 
-        # Disable YouTube URL field until OpenAI API key is valid
         if openai_api_key and selected_topic:
 
             transcript_filepath = os.path.join(transcript_storage_path, selected_topic + ".txt")
@@ -533,7 +521,6 @@ def show_user_ui():
             if not question:
                 st.warning("Please enter a question.")
             else:
-                # os.environ["OPENAI_API_KEY"] = openai_api_key
                 if uploaded_file.name not in st.session_state['chat_history']:
                     st.session_state['chat_history'][uploaded_file.name] = []
                 global previous_file
