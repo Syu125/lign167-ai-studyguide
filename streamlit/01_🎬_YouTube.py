@@ -512,7 +512,7 @@ def show_user_ui():
         openai_api_key = st.secrets["APIKEY"]
 
         # Disable YouTube URL field until OpenAI API key is valid
-        if openai_api_key:
+        if openai_api_key and selected_topic:
 
             transcript_filepath = os.path.join(transcript_storage_path, selected_topic + ".txt")
             download_blob(bucket_name, selected_topic, transcript_filepath)
