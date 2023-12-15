@@ -282,9 +282,8 @@ def display_topics_and_sections_ordered():
                         with st.expander(f"View Study Guide"):
                             show_pdf(public_url)
                         public_transcript_url = get_transcript_file(bucket_name, f"transcripts/{topic}")
-                        if public_transcript_url:
-                            with st.expander(f"View Transcript"):
-                                show_transcript(public_transcript_url)
+                        with st.expander(f"View Transcript"):
+                            show_transcript(public_transcript_url)
                             
                     with col3:    
                         st.markdown("""
