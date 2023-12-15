@@ -496,7 +496,7 @@ def show_user_ui():
                 )
         st.markdown('#####')
         if topics:
-            st.markdown("## Create Study Guide for Specific Topic")
+            st.markdown("## View Study Guide for Specific Topic")
             selected_topic = st.selectbox("Topic:", topics).split("| ")[1]
             file_path = f"pdfs/{selected_topic}"
             pdf_url = get_pdf_file(bucket_name, file_path) + f"?{int(time.time())}"
