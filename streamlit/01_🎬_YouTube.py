@@ -529,7 +529,7 @@ def show_user_ui():
             st.write("There is no transcript for this topic, so please select another topic!")
         
         # Add a button to run the function
-        if st.button("Send"):
+        if uploaded_file and st.button("Send"):
             if not question:
                 st.warning("Please enter a question.")
             else:
