@@ -15,6 +15,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 import base64
+import json
 from google.cloud import storage
 from google.oauth2 import service_account
 
@@ -26,7 +27,10 @@ st.set_page_config(page_title="Interactive Content")
 set_api_key(st.secrets["APIKEY"])
 
 # Authenticate to GCS
-credentials = service_account.Credentials.from_service_account_file('./streamlit/elemental-icon-407905-833146d629c5.json')
+encoded_credentials = st.secrets["GOOGLE_CREDENTIALS_BASE64"]
+credentials_json = base64.b64decode(encoded_credentials).decode('utf-8')
+credentials_dict = json.loads(credentials_json)
+credentials = service_account.Credentials.from_service_account_info(credentials_dict)
 client = storage.Client(credentials=credentials)
 
 # Function to upload file to GCS
